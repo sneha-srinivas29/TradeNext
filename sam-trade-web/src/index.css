@@ -1,0 +1,581 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================
+   BASE RESET
+================================ */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+/* ================================
+   SAMUNNATI THEME VARIABLES
+================================ */
+@layer base {
+  :root {
+    /* Backgrounds */
+    --background: 247 248 245;
+    /* page background */
+    --foreground: 31 41 55;
+    /* text */
+
+    --card: 255 255 255;
+    --card-foreground: 31 41 55;
+
+    --popover: 255 255 255;
+    --popover-foreground: 31 41 55;
+
+    /* Borders */
+    --border: 229 231 235;
+    --input: 229 231 235;
+
+    /* Primary Green */
+    --primary: 63 95 42;
+    --primary-foreground: 255 255 255;
+
+    /* Secondary */
+    --secondary: 243 244 246;
+    --secondary-foreground: 31 41 55;
+
+    /* Muted */
+    --muted: 243 244 246;
+    --muted-foreground: 107 114 128;
+
+    /* Accent */
+    --accent: 230 242 217;
+    --accent-foreground: 63 95 42;
+
+    /* Success / Approved */
+    --success: 230 242 217;
+    --success-foreground: 63 95 42;
+
+    /* Warning */
+    --warning: 254 243 199;
+    --warning-foreground: 146 64 14;
+
+    /* Destructive */
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+
+    /* Info */
+    --info: 219 234 254;
+    --info-foreground: 29 78 216;
+
+    /* Sidebar */
+    --sidebar-background: 74 93 35;
+    --sidebar-foreground: 255 255 255;
+    --sidebar-primary: 63 95 42;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 85 110 50;
+    --sidebar-accent-foreground: 255 255 255;
+    --sidebar-border: 85 110 50;
+    --sidebar-ring: 63 95 42;
+
+    /* Table */
+    --table-header: 243 244 246;
+    --table-header-foreground: 55 65 81;
+
+    /* Ring */
+    --ring: 63 95 42;
+
+    /* Layout */
+    --radius: 0.5rem;
+    --sidebar-width: 14rem;
+    --sidebar-collapsed-width: 0rem;
+    --header-height: 3.5rem;
+  }
+
+  .dark {
+    --background: 17 24 39;
+    --foreground: 243 244 246;
+
+    --card: 31 41 55;
+    --card-foreground: 243 244 246;
+
+    --popover: 31 41 55;
+    --popover-foreground: 243 244 246;
+
+    --primary: 74 93 35;
+    --primary-foreground: 255 255 255;
+
+    --secondary: 55 65 81;
+    --secondary-foreground: 243 244 246;
+
+    --muted: 55 65 81;
+    --muted-foreground: 156 163 175;
+
+    --accent: 63 95 42;
+    --accent-foreground: 255 255 255;
+
+    --destructive: 220 38 38;
+    --destructive-foreground: 255 255 255;
+
+    --border: 55 65 81;
+    --input: 55 65 81;
+    --ring: 74 93 35;
+
+    --sidebar-background: 17 24 39;
+    --sidebar-foreground: 243 244 246;
+    --sidebar-primary: 74 93 35;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 55 65 81;
+    --sidebar-accent-foreground: 243 244 246;
+    --sidebar-border: 55 65 81;
+    --sidebar-ring: 74 93 35;
+
+    --success: 34 197 94;
+    --success-foreground: 255 255 255;
+    --warning: 251 191 36;
+    --warning-foreground: 17 24 39;
+    --info: 59 130 246;
+    --info-foreground: 255 255 255;
+  }
+}
+
+/* ================================
+   OPTIONAL GLOBAL ELEMENT STYLES
+================================ */
+a {
+  @apply text-sm font-medium transition-colors;
+  color: rgb(var(--sidebar-foreground) / 0.8);
+}
+
+a:hover {
+  color: rgb(var(--sidebar-accent-foreground));
+}
+
+button {
+  font-family: 'Inter', inherit;
+}
+
+/* Components */
+@layer components {
+  .sidebar-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .content-transition {
+    @apply transition-[margin] duration-300 ease-in-out;
+  }
+
+  .icon-btn {
+    @apply p-2 rounded-lg transition-colors;
+    border: 1px solid rgb(var(--border));
+    background-color: transparent;
+  }
+
+  .icon-btn:hover {
+    background-color: rgb(var(--muted));
+  }
+
+  .status-badge {
+    @apply px-2.5 py-1 rounded-full text-xs font-medium border-0;
+  }
+
+  .status-approved {
+    background-color: rgb(var(--success));
+    color: rgb(var(--success-foreground));
+  }
+
+  .status-pending {
+    background-color: rgb(var(--muted));
+    color: rgb(var(--muted-foreground));
+  }
+
+  .status-completed {
+    background-color: rgb(var(--success));
+    color: rgb(var(--success-foreground));
+  }
+
+  .table-header {
+    background-color: rgb(var(--primary));
+    color: rgb(var(--primary-foreground));
+    border: 0;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+    color: rgb(var(--sidebar-foreground) / 0.8);
+  }
+
+  .nav-link:hover {
+    background-color: rgb(var(--sidebar-accent));
+    color: rgb(var(--sidebar-foreground));
+  }
+
+  .nav-link-active {
+    background-color: rgb(var(--sidebar-accent));
+    color: rgb(var(--sidebar-foreground));
+  }
+
+  .card-stat {
+    @apply rounded-lg p-4 hover:shadow-md transition-shadow;
+    background-color: rgb(var(--card));
+    border: 1px solid rgb(var(--border));
+  }
+
+  .input-field {
+    @apply w-full rounded-md px-3 py-2 text-sm transition-all duration-200;
+    border: 1px solid rgb(var(--input));
+    background-color: rgb(var(--background));
+  }
+
+  .input-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(var(--ring));
+    border-color: transparent;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-md transition-colors font-medium;
+    background-color: rgb(var(--primary));
+    color: rgb(var(--primary-foreground));
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--primary) / 0.85);
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-md transition-colors font-medium;
+    background-color: rgb(var(--secondary));
+    color: rgb(var(--secondary-foreground));
+    border: 1px solid rgb(var(--border));
+  }
+
+  .btn-secondary:hover {
+    background-color: rgb(var(--secondary) / 0.8);
+  }
+}
+
+/* Utilities */
+@layer utilities {
+
+  /* Background Colors */
+  .bg-background {
+    background-color: rgb(var(--background));
+  }
+
+  .bg-foreground {
+    background-color: rgb(var(--foreground));
+  }
+
+  .bg-card {
+    background-color: rgb(var(--card));
+  }
+
+  .bg-popover {
+    background-color: rgb(var(--popover));
+  }
+
+  .bg-primary {
+    background-color: rgb(var(--primary));
+  }
+
+  .bg-secondary {
+    background-color: rgb(var(--secondary));
+  }
+
+  .bg-muted {
+    background-color: rgb(var(--muted));
+  }
+
+  .bg-accent {
+    background-color: rgb(var(--accent));
+  }
+
+  .bg-destructive {
+    background-color: rgb(var(--destructive));
+  }
+
+  .bg-success {
+    background-color: rgb(var(--success));
+  }
+
+  .bg-warning {
+    background-color: rgb(var(--warning));
+  }
+
+  .bg-info {
+    background-color: rgb(var(--info));
+  }
+
+  /* Sidebar Background Colors */
+  .bg-sidebar {
+    background-color: rgb(var(--sidebar-background));
+  }
+
+  .bg-sidebar-primary {
+    background-color: rgb(var(--sidebar-primary));
+  }
+
+  .bg-sidebar-accent {
+    background-color: rgb(var(--sidebar-accent));
+  }
+
+  /* Text Colors */
+  .text-foreground {
+    color: rgb(var(--foreground));
+  }
+
+  .text-card-foreground {
+    color: rgb(var(--card-foreground));
+  }
+
+  .text-popover-foreground {
+    color: rgb(var(--popover-foreground));
+  }
+
+  .text-primary {
+    color: rgb(var(--primary));
+  }
+
+  .text-primary-foreground {
+    color: rgb(var(--primary-foreground));
+  }
+
+  .text-secondary {
+    color: rgb(var(--secondary));
+  }
+
+  .text-secondary-foreground {
+    color: rgb(var(--secondary-foreground));
+  }
+
+  .text-muted {
+    color: rgb(var(--muted));
+  }
+
+  .text-muted-foreground {
+    color: rgb(var(--muted-foreground));
+  }
+
+  .text-accent {
+    color: rgb(var(--accent));
+  }
+
+  .text-accent-foreground {
+    color: rgb(var(--accent-foreground));
+  }
+
+  .text-destructive {
+    color: rgb(var(--destructive));
+  }
+
+  .text-destructive-foreground {
+    color: rgb(var(--destructive-foreground));
+  }
+
+  .text-success {
+    color: rgb(var(--success));
+  }
+
+  .text-success-foreground {
+    color: rgb(var(--success-foreground));
+  }
+
+  .text-warning {
+    color: rgb(var(--warning));
+  }
+
+  .text-warning-foreground {
+    color: rgb(var(--warning-foreground));
+  }
+
+  .text-info {
+    color: rgb(var(--info));
+  }
+
+  .text-info-foreground {
+    color: rgb(var(--info-foreground));
+  }
+
+  /* Sidebar Text Colors */
+  .text-sidebar {
+    color: rgb(var(--sidebar-foreground));
+  }
+
+  .text-sidebar-foreground {
+    color: rgb(var(--sidebar-foreground));
+  }
+
+  .text-sidebar-primary {
+    color: rgb(var(--sidebar-primary));
+  }
+
+  .text-sidebar-primary-foreground {
+    color: rgb(var(--sidebar-primary-foreground));
+  }
+
+  .text-sidebar-accent {
+    color: rgb(var(--sidebar-accent));
+  }
+
+  .text-sidebar-accent-foreground {
+    color: rgb(var(--sidebar-accent-foreground));
+  }
+
+  /* Border Colors */
+  .border-border {
+    border-color: rgb(var(--border));
+  }
+
+  .border-input {
+    border-color: rgb(var(--input));
+  }
+
+  .border-primary {
+    border-color: rgb(var(--primary));
+  }
+
+  .border-secondary {
+    border-color: rgb(var(--secondary));
+  }
+
+  .border-muted {
+    border-color: rgb(var(--muted));
+  }
+
+  .border-accent {
+    border-color: rgb(var(--accent));
+  }
+
+  .border-destructive {
+    border-color: rgb(var(--destructive));
+  }
+
+  .border-sidebar {
+    border-color: rgb(var(--sidebar-border));
+  }
+
+  /* Ring Colors */
+  .ring-primary {
+    --tw-ring-color: rgb(var(--primary));
+  }
+
+  .ring-sidebar {
+    --tw-ring-color: rgb(var(--sidebar-ring));
+  }
+
+  /* Animations */
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ================================
+   LOGO ANIMATIONS
+================================ */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 5em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 25s linear infinite;
+}
+
+@keyframes carousel {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-carousel {
+  animation: carousel 16s linear infinite;
+}
+
+.animate-carousel:hover {
+  animation-play-state: paused;
+}
+ 
