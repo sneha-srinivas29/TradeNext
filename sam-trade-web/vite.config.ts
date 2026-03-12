@@ -1,4 +1,26 @@
 
+// // import { defineConfig } from "vite";
+// // import react from "@vitejs/plugin-react-swc";
+// // import path from "path";
+
+// // // https://vitejs.dev/config/
+// // export default defineConfig({
+// //   server: {
+// //     host: "::",
+// //     port: 8080,
+// //     allowedHosts: [".trycloudflare.com"],
+// //   },
+// //   resolve: {
+// //     alias: {
+// //       "@": path.resolve(__dirname, "./src"),
+// //     },
+// //   },
+// //   base: "/", 
+// //   build: {
+// //     outDir: "build",
+// //   },
+// // });
+
 // import { defineConfig } from "vite";
 // import react from "@vitejs/plugin-react-swc";
 // import path from "path";
@@ -9,30 +31,40 @@
 //     host: "::",
 //     port: 8080,
 //     allowedHosts: [".trycloudflare.com"],
+
+   
+//     proxy: {
+//       "/proxy": {
+//         target: "http://localhost:3001",
+//         changeOrigin: true,
+//         secure: false,
+//       },
+//       "/api": {
+//         target: "http://localhost:3001",
+//         changeOrigin: true,
+//         secure: false,
+//       },
+//     },
 //   },
 //   resolve: {
 //     alias: {
 //       "@": path.resolve(__dirname, "./src"),
 //     },
 //   },
-//   base: "/", 
+//   base: "/",
 //   build: {
 //     outDir: "build",
 //   },
 // });
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   server: {
     host: "::",
     port: 8080,
     allowedHosts: [".trycloudflare.com"],
-
-   
     proxy: {
       "/proxy": {
         target: "http://localhost:3001",
@@ -53,6 +85,7 @@ export default defineConfig({
   },
   base: "/",
   build: {
-    outDir: "build",
+    outDir: "dist", 
   },
 });
+
