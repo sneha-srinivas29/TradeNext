@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Analytics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      padding: 20px;
+      color: #333;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; font-size: 2rem; }
+    
+    .grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 20px; 
+      margin-bottom: 30px;
+    }
+    
+    .card { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 12px; 
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eaeaea;
+    }
+    
+    .card h3 { margin: 0; color: #666; font-size: 14px; font-weight: 600; }
+    .card h1 { margin: 10px 0 0 0; color: #2c3e50; font-size: 1.8rem; }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .chart-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eaeaea;
+    }
+    
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eaeaea;
+      min-height: 300px; /* Fixed minimum height */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Chart canvas container */
+    .chart-wrapper {
+      flex: 1;
+      min-height: 200px;
+      max-height: 250px;
+      position: relative;
+    }
+    
+    /* Make payment method chart smaller */
+    .chart-container:has(#paymentMethodChart) .chart-wrapper {
+      max-height: 180px;
+    }
+    
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 10px; 
+      font-size: 14px;
+    }
+    th, td { 
+      padding: 12px 15px; 
+      text-align: left; 
+      border-bottom: 1px solid #eaeaea; 
+    }
+    th { 
+      background: #f8f9fa; 
+      font-weight: 600;
+      color: #2c3e50;
+      position: sticky;
+      top: 0;
+    }
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    #loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      color: #666;
+    }
+    
+    /* Three-column layout */
+    .three-column {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    @media (max-width: 1200px) {
+      .three-column {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .three-column {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      flex-shrink: 0;
+    }
+    
+    .stat-card {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .stat-card h4 {
+      margin: 0;
+      color: #666;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .stat-card p {
+      margin: 5px 0 0 0;
+      color: #2c3e50;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    /* Fix for date display issues */
+    .date-fix {
+      font-size: 12px;
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📊 Payment Analytics Dashboard</h1>
+
+<div id="loading">⏳ Loading...</div>
+<div id="content" style="display:none;">
+  
+  <!-- SUMMARY CARDS -->
+  <div class="grid">
+    <div class="card">
+      <h3>Total Payments</h3>
+      <h1 id="totalPayments">0</h1>
+    </div>
+    <div class="card">
+      <h3>Total Amount</h3>
+      <h1 id="totalAmount">₹0</h1>
+    </div>
+    <div class="card">
+      <h3>Total Invoices</h3>
+      <h1 id="totalInvoices">0</h1>
+    </div>
+    <div class="card">
+      <h3>Avg Payment</h3>
+      <h1 id="avgPayment">₹0</h1>
+    </div>
+    <div class="card">
+      <h3>Total Vendors</h3>
+      <h1 id="totalVendors">0</h1>
+    </div>
+  </div>
+
+  <!-- Highest Paid Vendor Card - White Theme -->
+  <div class="card" style="margin: 20px 0; padding: 25px; background: white; border-left: 5px solid #667eea;">
+    <h2 style="color: #2c3e50; margin-bottom: 15px;">🏆 Highest Paid Vendor</h2>
+    <h1 id="highestVendor" style="color: #2c3e50; margin-bottom: 10px;">-</h1>
+    <p id="highestAmount" style="font-size: 24px; color: #667eea; margin:0; font-weight: 600;">-</p>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="charts-grid">
+    <!-- Vendor vs Amount Paid -->
+    <div class="chart-card full-width">
+      <h2>💰 Vendor vs Amount Paid</h2>
+      <div class="chart-wrapper">
+        <canvas id="vendorChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Three-column layout -->
+    <div class="three-column">
+      <!-- Payment Methods Used -->
+      <div class="chart-container">
+        <h2>💳 Payment Methods</h2>
+        <div class="chart-wrapper">
+          <canvas id="paymentMethodChart"></canvas>
+        </div>
+        
+        <!-- Payment Method Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Primary Method</h4>
+            <p id="primaryMethod">-</p>
+          </div>
+          <div class="stat-card">
+            <h4>Methods Used</h4>
+            <p id="methodsCount">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Most Used</h4>
+            <p id="mostUsedPercent">0%</p>
+          </div>
+          <div class="stat-card">
+            <h4>Other Methods</h4>
+            <p id="otherMethods">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Timeline -->
+      <div class="chart-container">
+        <h2>📊 Payment Timeline</h2>
+        <div class="chart-wrapper">
+          <canvas id="timelineChart"></canvas>
+        </div>
+        
+        <!-- Timeline Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Peak Day</h4>
+            <p id="peakDay" class="date-fix">-</p>
+          </div>
+          <div class="stat-card">
+            <h4>Avg Daily</h4>
+            <p id="avgDailyPayments">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Highest</h4>
+            <p id="highestDayCount">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Lowest</h4>
+            <p id="lowestDayCount">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Status -->
+      <div class="chart-container">
+        <h2>📈 Payment Status</h2>
+        <div class="chart-wrapper">
+          <canvas id="paymentStatusChart"></canvas>
+        </div>
+        
+        <!-- Status Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Success Rate</h4>
+            <p id="successRate">0%</p>
+          </div>
+          <div class="stat-card">
+            <h4>Pending</h4>
+            <p id="pendingPayments">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Completed</h4>
+            <p id="completedPayments">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Failed</h4>
+            <p id="failedPayments">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supplier Payment Days vs Vendor -->
+    <div class="chart-container full-width">
+      <h2>⏳ Supplier Payment Days vs Vendor</h2>
+      <div class="chart-wrapper">
+        <canvas id="supplierPaymentDaysChart"></canvas>
+      </div>
+    </div>
+
+    <!-- UTR Date vs Due Date Table -->
+    <div class="chart-container full-width">
+      <h2>📅 UTR Date vs Due Date (Top 20)</h2>
+      <div style="max-height: 400px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Bill Payment ID</th>
+              <th>Vendor</th>
+              <th>Invoice ID</th>
+              <th>UTR Date</th>
+              <th>Due Date</th>
+              <th>Payment Days</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="utrTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Fixed date parsing function - handles MM/DD/YYYY format properly
+  function parseDate(dateStr) {
+    if (!dateStr) return null;
+    
+    // If it's already a timestamp or ISO format
+    if (typeof dateStr === 'number' || dateStr.includes('T')) {
+      const date = new Date(dateStr);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    
+    // Handle MM/DD/YYYY or DD/MM/YYYY
+    const parts = dateStr.split(/[/-]/);
+    if (parts.length === 3) {
+      const part1 = parseInt(parts[0]);
+      const part2 = parseInt(parts[1]);
+      const year = parseInt(parts[2]);
+      
+      // Check if it's likely MM/DD/YYYY (month first)
+      if (part1 <= 12 && part2 <= 31) {
+        // Assume MM/DD/YYYY
+        return new Date(year, part1 - 1, part2);
+      } else if (part2 <= 12 && part1 <= 31) {
+        // Assume DD/MM/YYYY
+        return new Date(year, part2 - 1, part1);
+      }
+    }
+    
+    // Try default Date parsing
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // Safe date formatting - limits to reasonable years
+  function formatDate(date) {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    
+    // Check for unreasonable future dates (beyond 2050)
+    const currentYear = new Date().getFullYear();
+    if (date.getFullYear() > currentYear + 10) {
+      // Return a shortened version or just year
+      return `${date.getDate()}/${date.getMonth() + 1}`;
+    }
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    // Only show year if it's not current year
+    if (year === currentYear) {
+      return `${day}/${month}`;
+    }
+    
+    return `${day}/${month}/${year}`;
+  }
+
+  // Shorten date for chart labels
+  function formatDateShort(dateStr) {
+    const date = parseDate(dateStr);
+    if (!date) return dateStr;
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}/${month}`;
+  }
+
+  async function loadDashboard() {
+    try {
+      const res = await fetch('http://localhost:3001/api/dashboard/summary');
+      const data = await res.json();
+      
+      console.log('✅ Dashboard Data:', data);
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+      // Summary Cards
+      document.getElementById('totalPayments').textContent = data.summary.totalPayments || 0;
+      document.getElementById('totalAmount').textContent = '₹' + (data.summary.totalAmount || 0).toLocaleString();
+      document.getElementById('totalInvoices').textContent = data.summary.totalInvoices || 0;
+      document.getElementById('avgPayment').textContent = '₹' + (data.summary.averagePayment || 0).toLocaleString();
+      document.getElementById('totalVendors').textContent = data.summary.totalVendors || 0;
+      document.getElementById('highestVendor').textContent = data.summary.highestVendor?.name || '-';
+      document.getElementById('highestAmount').textContent = '₹' + (data.summary.highestVendor?.amount || 0).toLocaleString();
+
+      // Charts
+      createVendorChart(data.vendorSummary || []);
+      createPaymentMethodChart(data.paymentMethods || {});
+      createTimelineChart(data.timeline || []);
+      
+      // Calculate and display timeline stats
+      calculateTimelineStats(data.timeline || []);
+      
+      // Create payment status chart
+      createPaymentStatusChart(data.paymentStatus || {
+        completed: 85,
+        pending: 10,
+        failed: 5
+      });
+      
+      // Update payment method stats
+      updatePaymentMethodStats(data.paymentMethods || {});
+      
+      // Create supplier payment days chart
+      createSupplierPaymentDaysChart(data.utrVsDueDate || []);
+      
+      // Fill UTR table
+      fillUtrTable(data.utrVsDueDate || []);
+
+    } catch (err) {
+      console.error('Error:', err);
+      document.getElementById('loading').innerHTML = '❌ Failed to load dashboard. Please check your API connection.';
+    }
+  }
+
+  function calculateTimelineStats(timelineData) {
+    if (!timelineData || timelineData.length === 0) {
+      document.getElementById('peakDay').textContent = '-';
+      document.getElementById('avgDailyPayments').textContent = '0';
+      document.getElementById('highestDayCount').textContent = '0';
+      document.getElementById('lowestDayCount').textContent = '0';
+      return;
+    }
+    
+    let peakDay = timelineData[0];
+    let highestCount = 0;
+    let totalPayments = 0;
+    let lowestCount = Infinity;
+    
+    timelineData.forEach(day => {
+      const count = parseInt(day.count) || 0;
+      totalPayments += count;
+      if (count > highestCount) {
+        highestCount = count;
+        peakDay = day;
+      }
+      if (count < lowestCount) {
+        lowestCount = count;
+      }
+    });
+    
+    const avgDaily = totalPayments / timelineData.length;
+    
+    // Update UI with safe date formatting
+    document.getElementById('peakDay').textContent = formatDateShort(peakDay.date) || '-';
+    document.getElementById('avgDailyPayments').textContent = avgDaily.toFixed(1);
+    document.getElementById('highestDayCount').textContent = highestCount;
+    document.getElementById('lowestDayCount').textContent = lowestCount === Infinity ? 0 : lowestCount;
+  }
+
+  function updatePaymentMethodStats(methods) {
+    const keys = Object.keys(methods);
+    const values = Object.values(methods);
+    
+    if (keys.length === 0) {
+      document.getElementById('primaryMethod').textContent = '-';
+      document.getElementById('methodsCount').textContent = '0';
+      document.getElementById('mostUsedPercent').textContent = '0%';
+      document.getElementById('otherMethods').textContent = '0';
+      return;
+    }
+    
+    // Find primary method
+    let maxIndex = 0;
+    let total = 0;
+    
+    values.forEach((val, index) => {
+      total += val;
+      if (val > values[maxIndex]) {
+        maxIndex = index;
+      }
+    });
+    
+    const primaryMethod = keys[maxIndex];
+    const primaryPercent = Math.round((values[maxIndex] / total) * 100);
+    
+    document.getElementById('primaryMethod').textContent = `Method ${primaryMethod}`;
+    document.getElementById('methodsCount').textContent = keys.length;
+    document.getElementById('mostUsedPercent').textContent = `${primaryPercent}%`;
+    document.getElementById('otherMethods').textContent = keys.length - 1;
+  }
+
+  function createPaymentStatusChart(statusData) {
+    const ctx = document.getElementById('paymentStatusChart');
+    if (!ctx) return;
+    
+    const completed = statusData.completed || 0;
+    const pending = statusData.pending || 0;
+    const failed = statusData.failed || 0;
+    const total = completed + pending + failed;
+    
+    const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    // Update status stats
+    document.getElementById('successRate').textContent = `${successRate}%`;
+    document.getElementById('pendingPayments').textContent = pending;
+    document.getElementById('completedPayments').textContent = completed;
+    document.getElementById('failedPayments').textContent = failed;
+    
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'Pending', 'Failed'],
+        datasets: [{
+          data: [completed, pending, failed],
+          backgroundColor: [
+            'rgba(46, 204, 113, 0.8)',
+            'rgba(230, 126, 34, 0.8)',
+            'rgba(231, 76, 60, 0.8)'
+          ],
+          borderColor: 'white',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 10,
+              boxWidth: 12
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function createVendorChart(vendors) {
+    const ctx = document.getElementById('vendorChart');
+    if (!ctx) return;
+    
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: vendors.map(v => {
+          const name = v.vendor || 'Unknown';
+          return name.length > 20 ? name.substring(0, 17) + '...' : name;
+        }),
+        datasets: [{
+          label: 'Total Amount (₹)',
+          data: vendors.map(v => v.totalAmount || 0),
+          backgroundColor: 'rgba(102, 126, 234, 0.7)',
+          borderColor: 'rgba(102, 126, 234, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: false } 
+        },
+        scales: { 
+          y: { 
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '₹' + value.toLocaleString();
+              }
+            }
+          } 
+        }
+      }
+    });
+  }
+
+  function createPaymentMethodChart(methods) {
+    const ctx = document.getElementById('paymentMethodChart');
+    if (!ctx) return;
+    
+    const labels = Object.keys(methods);
+    const data = Object.values(methods);
+    
+    if (labels.length === 0) {
+      ctx.style.display = 'none';
+      return;
+    }
+    
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels.map(m => `Method ${m}`),
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            'rgba(102, 126, 234, 0.8)',
+            'rgba(155, 89, 182, 0.8)',
+            'rgba(52, 152, 219, 0.8)',
+            'rgba(46, 204, 113, 0.8)',
+            'rgba(230, 126, 34, 0.8)'
+          ],
+          borderColor: 'white',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              padding: 10,
+              boxWidth: 12
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function createTimelineChart(timeline) {
+    const ctx = document.getElementById('timelineChart');
+    if (!ctx) return;
+    
+    // Use short date format for labels
+    const labels = timeline.map(t => formatDateShort(t.date) || t.date);
+    const data = timeline.map(t => t.count || 0);
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Payment Count',
+          data: data,
+          borderColor: '#667eea',
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { 
+          y: { 
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          } 
+        }
+      }
+    });
+  }
+
+  function createSupplierPaymentDaysChart(utrData) {
+    const ctx = document.getElementById('supplierPaymentDaysChart');
+    if (!ctx) return;
+    
+    const vendorPaymentDays = {};
+    
+    utrData.forEach(item => {
+      const vendor = item.vendor || 'Unknown';
+      const paymentDays = parseInt(item.supplierPaymentDays) || 0;
+      
+      if (!vendorPaymentDays[vendor] || paymentDays > vendorPaymentDays[vendor]) {
+        vendorPaymentDays[vendor] = paymentDays;
+      }
+    });
+    
+    const sortedData = Object.entries(vendorPaymentDays)
+      .map(([vendor, days]) => ({ vendor, days }))
+      .sort((a, b) => b.days - a.days)
+      .slice(0, 10); // Limit to top 10
+    
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sortedData.map(item => {
+          return item.vendor.length > 20 
+            ? item.vendor.substring(0, 17) + '...' 
+            : item.vendor;
+        }),
+        datasets: [{
+          label: 'Supplier Payment Days',
+          data: sortedData.map(item => item.days),
+          backgroundColor: 'rgba(230, 126, 34, 0.7)',
+          borderColor: 'rgba(230, 126, 34, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.parsed.x} days`;
+              }
+            }
+          }
+        },
+        scales: { 
+          x: { 
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Payment Days'
+            }
+          } 
+        }
+      }
+    });
+  }
+
+  function fillUtrTable(data) {
+    const tbody = document.getElementById('utrTable');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const top20 = data.slice(0, 20);
+    
+    top20.forEach(item => {
+      const billId = item.billPaymentId || '-';
+      const vendor = item.vendor || '-';
+      const invoiceId = item.invoiceId || '-';
+      const paymentDays = parseInt(item.supplierPaymentDays) || 0;
+      const amount = parseFloat(item.amount || 0);
+      
+      // Format dates safely
+      const utrDate = item.utrDate ? formatDate(parseDate(item.utrDate)) : '-';
+      const dueDate = item.dueDate ? formatDate(parseDate(item.dueDate)) : '-';
+      
+      tbody.innerHTML += `
+        <tr>
+          <td>${billId}</td>
+          <td>${vendor}</td>
+          <td>${invoiceId}</td>
+          <td>${utrDate}</td>
+          <td>${dueDate}</td>
+          <td>${paymentDays} days</td>
+          <td>₹${amount.toLocaleString()}</td>
+        </tr>
+      `;
+    });
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

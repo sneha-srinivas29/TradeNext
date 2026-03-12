@@ -1,0 +1,20 @@
+export const ACCESS_MATRIX = {
+  SALES_ORDER: {
+    BUYER: ['VIEW', 'CREATE', 'EDIT'],
+    SUPPLIER: ['VIEW'],
+    BUYER_SUPPLIER: ['VIEW', 'CREATE', 'EDIT'],
+    SUPPLIER_BUYER: ['VIEW', 'CREATE', 'EDIT'],
+  },
+  PURCHASE_ORDER: {
+    BUYER: [],
+    SUPPLIER: ['VIEW'],
+    BUYER_SUPPLIER: ['VIEW'],
+    SUPPLIER_BUYER: ['VIEW'],
+  },
+  USER_MANAGEMENT: {
+    BUYER: [],
+    SUPPLIER: [],
+    BUYER_SUPPLIER: ['VIEW', 'CREATE', 'EDIT'],
+    SUPPLIER_BUYER: [],
+  },
+};

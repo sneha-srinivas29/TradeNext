@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penalty Reconciliation - Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .invoice-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .invoice-number {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-overdue {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .payment-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option-card {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option-card:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .option-card.selected {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .option-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .option-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .result-box {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #15803d;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .error-box {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Penalty Reconciliation Testing</h1>
+            <p>Test UTR-based payment reconciliation with penalty clearance</p>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Fetch Invoice Details -->
+            <div class="section">
+                <div class="section-title">Step 1: Fetch Invoice Details</div>
+
+                <div class="form-group">
+                    <label>Backend API URL</label>
+                    <input type="text" id="apiUrl" value="http://localhost:3001/api/penalties"
+                        placeholder="http://localhost:3001/api/penalties">
+                </div>
+
+                <div class="form-group">
+                    <label>Invoice ID</label>
+                    <input type="text" id="invoiceId" placeholder="e.g., 5360776">
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Date (for testing back-dated payments)</label>
+                    <input type="date" id="paymentDate">
+                </div>
+
+                <button class="btn btn-primary" onclick="fetchInvoiceDetails()">
+                    📋 Fetch Invoice Details
+                </button>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #667eea;">Loading...</p>
+            </div>
+
+            <!-- Step 2: Invoice Details Display -->
+            <div class="section hidden" id="invoiceSection">
+                <div class="section-title">Step 2: Invoice Details</div>
+
+                <div class="invoice-card" id="invoiceCard">
+                    <!-- Invoice details will be populated here -->
+                </div>
+            </div>
+
+            <!-- Step 3: Enter Payment Amount -->
+            <div class="section hidden" id="paymentAmountSection">
+                <div class="section-title">Step 3: Enter Payment Amount</div>
+
+                <div class="form-group">
+                    <label>Payment Amount (₹)</label>
+                    <input type="number" id="paymentAmount" placeholder="e.g., 5000" step="0.01">
+                </div>
+
+                <button class="btn btn-primary" onclick="calculatePaymentDetails()">
+                    🧮 Calculate Payment Details
+                </button>
+            </div>
+
+            <!-- Step 4: Payment Calculation Results -->
+            <div class="section hidden" id="calculationResultsSection">
+                <div class="section-title">Step 4: Payment Breakdown</div>
+
+                <div id="calculationResults">
+                    <!-- Calculation results will be populated here -->
+                </div>
+            </div>
+
+            <!-- Step 5: Payment Options -->
+            <div class="section hidden" id="paymentOptionsSection">
+                <div class="section-title">Step 5: Select Payment Option</div>
+
+                <div class="payment-options" id="paymentOptions">
+                    <!-- Options will be populated here -->
+                </div>
+            </div>
+
+            <!-- Step 6: UTR Details -->
+            <div class="section hidden" id="utrSection">
+                <div class="section-title">Step 6: Enter UTR Details</div>
+
+                <div class="form-group">
+                    <label>Customer ID</label>
+                    <input type="text" id="custId" placeholder="e.g., 46151">
+                </div>
+
+                <div class="form-group">
+                    <label>UTR Number</label>
+                    <input type="text" id="utrNo" placeholder="e.g., UTR123456789">
+                </div>
+
+                <div class="form-group">
+                    <label>Memo</label>
+                    <input type="text" id="memo" placeholder="Payment memo">
+                </div>
+
+                <button class="btn btn-success" onclick="processReconciliation()">
+                    ✅ Process Reconciliation
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="resultContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentInvoice = null;
+        let selectedOption = null;
+        let paymentCalculation = null;
+
+        // Set today's date as default
+        document.getElementById('paymentDate').valueAsDate = new Date();
+
+        async function fetchInvoiceDetails() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const invoiceId = document.getElementById('invoiceId').value;
+
+            if (!invoiceId) {
+                alert('Please enter an Invoice ID');
+                return;
+            }
+
+            showLoading(true);
+            hideResults();
+
+            try {
+                const response = await fetch(`${apiUrl}/invoices/${invoiceId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to fetch invoice');
+                }
+
+                currentInvoice = data.data;
+                displayInvoiceDetails(currentInvoice);
+
+                document.getElementById('invoiceSection').classList.remove('hidden');
+                document.getElementById('paymentAmountSection').classList.remove('hidden');
+
+            } catch (error) {
+                showError('Error fetching invoice: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayInvoiceDetails(invoice) {
+            const card = document.getElementById('invoiceCard');
+
+            card.innerHTML = `
+                <div class="invoice-header">
+                    <div class="invoice-number">${invoice.invoice_number}</div>
+                    <div class="badge badge-overdue">${invoice.status}</div>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Customer</div>
+                        <div class="info-value">${invoice.customer_name}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Due Date</div>
+                        <div class="info-value">${new Date(invoice.due_date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Outstanding Principal</div>
+                        <div class="info-value">₹${invoice.current_outstanding.toFixed(2)}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Days Overdue</div>
+                        <div class="info-value">${invoice.days_overdue} days</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Penalty Rate</div>
+                        <div class="info-value">${invoice.penalty_rate}% p.a.</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Current Accrued Penalty</div>
+                        <div class="info-value" style="color: #dc2626;">₹${invoice.current_accrued_penalty.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function calculatePaymentDetails() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentDate = document.getElementById('paymentDate').value;
+
+            if (!paymentAmount || paymentAmount <= 0) {
+                alert('Please enter a valid payment amount');
+                return;
+            }
+
+            if (paymentAmount > currentInvoice.current_outstanding) {
+                if (!confirm(`Payment amount (₹${paymentAmount}) is greater than outstanding (₹${currentInvoice.current_outstanding}). Continue?`)) {
+                    return;
+                }
+            }
+
+            showLoading(true);
+            hideResults();
+
+            try {
+                const response = await fetch(`${apiUrl}/calculate-payment-details`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        invoice_id: currentInvoice.invoice_id,
+                        payment_amount: paymentAmount,
+                        payment_date: paymentDate // ← Send YYYY-MM-DD directly
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Calculation failed');
+                }
+
+                paymentCalculation = data.data;
+                displayCalculationResults(paymentCalculation);
+                displayPaymentOptions(paymentCalculation);
+
+                document.getElementById('calculationResultsSection').classList.remove('hidden');
+                document.getElementById('paymentOptionsSection').classList.remove('hidden');
+
+            } catch (error) {
+                showError('Error calculating payment: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayCalculationResults(calc) {
+            const container = document.getElementById('calculationResults');
+
+            container.innerHTML = `
+                <div class="invoice-card">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Payment Breakdown</h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Payment Amount</div>
+                            <div class="info-value">₹${calc.payment_amount.toFixed(2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Payment Date</div>
+                            <div class="info-value">${new Date(calc.payment_date).toLocaleDateString()}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Days Overdue</div>
+                            <div class="info-value">${calc.days_overdue} days</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Penalty Rate</div>
+                            <div class="info-value">${calc.penalty_rate}% p.a.</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 6px;">
+                        <div style="font-size: 14px; color: #92400e; margin-bottom: 10px;"><strong>📊 Penalty Calculations:</strong></div>
+                        <div style="display: grid; gap: 8px;">
+                            <div>
+                                <span style="color: #78350f;">Accrued Penalty (up to payment date):</span>
+                                <strong style="float: right; color: #dc2626;">₹${calc.accrued_penalty_up_to_payment_date.toFixed(2)}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #78350f;">Penalty on Payment Amount (₹${calc.payment_amount}):</span>
+                                <strong style="float: right; color: #dc2626;">₹${calc.penalty_on_payment_amount.toFixed(2)}</strong>
+                            </div>
+                            <div style="border-top: 2px solid #fbbf24; padding-top: 8px; margin-top: 8px;">
+                                <span style="color: #78350f;">Remaining Accrued (after payment penalty):</span>
+                                <strong style="float: right; color: #dc2626;">₹${calc.remaining_accrued_after_payment_penalty.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${calc.gst_adjustment_applied ? `
+                        <div style="margin-top: 10px; padding: 10px; background: #e0f2fe; border-left: 4px solid #0284c7; border-radius: 6px; font-size: 13px;">
+                            <strong>ℹ️ GST Adjustment Applied:</strong><br>
+                            Original Payment: ₹${calc.payment_amount.toFixed(2)}<br>
+                            Adjusted Payment: ₹${calc.adjusted_payment_amount.toFixed(2)}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function displayPaymentOptions(calc) {
+            const container = document.getElementById('paymentOptions');
+
+            container.innerHTML = `
+                <div class="option-card" onclick="selectOption('principal_only', ${JSON.stringify(calc.option1_principal_only).replace(/"/g, '&quot;')})">
+                    <div class="option-title">💰 Option 1: Pay Principal Only</div>
+                    <div class="option-amount">₹${calc.option1_principal_only.total_amount.toFixed(2)}</div>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 5px;">
+                        Principal: ₹${calc.option1_principal_only.principal_paid.toFixed(2)}<br>
+                        Penalty Cleared: ₹0<br>
+                        <span style="color: #dc2626;">⚠️ Remaining Accrued: ₹${calc.option1_principal_only.remaining_accrued.toFixed(2)}</span>
+                    </p>
+                </div>
+                
+
+                <div class="option-card" onclick="selectOption('principal_plus_all_accrued', ${JSON.stringify(calc.option3_principal_plus_all_accrued).replace(/"/g, '&quot;')})">
+                    <div class="option-title">💰 Option 2: Pay Principal + All Accrued</div>
+                    <div class="option-amount">₹${calc.option3_principal_plus_all_accrued.total_amount.toFixed(2)}</div>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 5px;">
+                        Principal: ₹${calc.option3_principal_plus_all_accrued.principal_paid.toFixed(2)}<br>
+                        Penalty Cleared: ₹${calc.option3_principal_plus_all_accrued.penalty_cleared.toFixed(2)}<br>
+                        <span style="color: #10b981;">✅ Remaining Accrued: ₹0</span>
+                    </p>
+                </div>
+            `;
+        }
+
+        function selectOption(optionKey, optionData) {
+            selectedOption = { key: optionKey, data: optionData };
+
+            // Update UI
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.option-card').classList.add('selected');
+
+            // Show UTR section
+            document.getElementById('utrSection').classList.remove('hidden');
+
+            // Pre-fill customer ID
+            document.getElementById('custId').value = currentInvoice.customer_id;
+        }
+
+        async function processReconciliation() {
+            if (!selectedOption) {
+                alert('Please select a payment option');
+                return;
+            }
+
+            const apiUrl = document.getElementById('apiUrl').value;
+            const custId = document.getElementById('custId').value;
+            const utrNo = document.getElementById('utrNo').value;
+            const memo = document.getElementById('memo').value;
+            const paymentDate = document.getElementById('paymentDate').value;
+
+            if (!custId || !utrNo) {
+                alert('Please fill in Customer ID and UTR Number');
+                return;
+            }
+
+            showLoading(true);
+            hideResults();
+
+            try {
+                // Determine penalty clearance based on selected option
+                const penalAccrualClear = (selectedOption.key === 'principal_only') ? 'No' : 'Yes';
+                const penalAccrualAmount = selectedOption.data.penalty_cleared;
+
+                // Build payload
+                const payload = {
+                    custid: custId,
+                    paymentdate: new Date(paymentDate).toLocaleDateString('en-GB'), // DD/MM/YYYY
+                    utrno: utrNo,
+                    memo: memo,
+                    amount: selectedOption.data.total_amount,
+                    invoices: [
+                        {
+                            invoiceId: currentInvoice.invoice_id,
+                            amount: selectedOption.data.principal_paid,
+                            penal_accrual_clear: penalAccrualClear,
+                            penal_accrual_recon_amount: penalAccrualAmount
+                        }
+                    ]
+                };
+
+                console.log('Sending payload:', payload);
+
+                const response = await fetch(`${apiUrl}/reconcile-with-utr`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Reconciliation failed');
+                }
+
+                showSuccess(data, selectedOption.data);
+
+            } catch (error) {
+                showError('Error processing reconciliation: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showSuccess(data, optionData) {
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = `
+                <div class="result-box">
+                    <div class="result-title">✅ Reconciliation Successful</div>
+                    
+                    <div class="result-item">
+                        <strong>Payment Summary:</strong><br>
+                        Principal Paid: ₹${optionData.principal_paid.toFixed(2)}<br>
+                        Penalty Cleared: ₹${optionData.penalty_cleared.toFixed(2)}<br>
+                        Total Amount: ₹${optionData.total_amount.toFixed(2)}<br>
+                        Remaining Outstanding: ₹${optionData.remaining_outstanding.toFixed(2)}<br>
+                        Remaining Accrued: ₹${optionData.remaining_accrued.toFixed(2)}
+                    </div>
+                    
+                    <div class="result-item">
+                        <strong>Principal Reconciliation:</strong><br>
+                        Status: ${data.principal_reconciliation.success ? '✅ Success' : '❌ Failed'}<br>
+                        Invoices Reconciled: ${data.principal_reconciliation.invoices_reconciled}
+                    </div>
+                    
+                    <div class="result-item">
+                        <strong>Penalty Processing:</strong><br>
+                        Status: ${data.penalty_processing.status}<br>
+                        Penalty Invoices: ${data.penalty_processing.penalty_invoices_count}
+                    </div>
+                    
+                    <div class="result-item">
+                        <strong>Response Details:</strong><br>
+                        <pre style="background: #f9fafb; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = `
+                <div class="error-box">
+                    <strong>❌ Error:</strong><br>
+                    ${message}
+                </div>
+            `;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function hideResults() {
+            document.getElementById('resultContainer').innerHTML = '';
+        }
+    </script>
+</body>
+
+</html>

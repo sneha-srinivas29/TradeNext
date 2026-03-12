@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Advance Payment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">Invoice Advance Payment</h1>
+            
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Invoice ID</label>
+                    <input
+                        type="text"
+                        id="invoiceId"
+                        value="5360998"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Payment Amount (₹)</label>
+                    <input
+                        type="number"
+                        id="paymentAmount"
+                        value="5000"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Payment Date (for testing)</label>
+                    <input
+                        type="date"
+                        id="paymentDate"
+                        value="2026-01-19"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+            </div>
+
+            <button
+                onclick="loadInvoiceDetails()"
+                class="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-medium"
+            >
+                Load Invoice Details
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden bg-white rounded-lg shadow p-6 text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-4 text-gray-600">Loading...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p class="font-semibold text-red-900">Error</p>
+            <p id="errorMessage" class="text-sm text-red-800"></p>
+        </div>
+
+        <!-- Invoice Details -->
+        <div id="results" class="hidden space-y-6">
+            <!-- Current Status -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Current Invoice Status</h2>
+                <div id="invoiceInfo" class="grid grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Select Payment Option</h2>
+                
+                <!-- Case 1: Principle Only -->
+                <div id="case1" onclick="selectCase(1)" class="border-2 rounded-lg p-4 mb-4 cursor-pointer hover:border-blue-400 transition-all">
+                    <div class="flex items-start gap-3">
+                        <input type="radio" name="paymentCase" value="1" class="mt-1" checked>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg mb-2">Case 1: Pay Principle Only</h3>
+                            <div id="case1Details" class="bg-gray-50 rounded p-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 2: Principle + Accrued -->
+                <div id="case2" onclick="selectCase(2)" class="border-2 rounded-lg p-4 cursor-pointer hover:border-green-400 transition-all">
+                    <div class="flex items-start gap-3">
+                        <input type="radio" name="paymentCase" value="2" class="mt-1">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg mb-2">Case 2: Pay Principle + Accrued Penalty</h3>
+                            <div id="case2Details" class="bg-gray-50 rounded p-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    onclick="proceedWithPayment()"
+                    class="w-full mt-6 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold text-lg"
+                >
+                    Proceed with Selected Option
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+        
+        let invoiceData = null;
+        let calculationData = null;
+        let selectedCaseNum = 1;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+            }).format(amount);
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.add('hidden');
+        }
+
+        async function loadInvoiceDetails() {
+            const invoiceId = document.getElementById('invoiceId').value;
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentDate = document.getElementById('paymentDate').value;
+
+            if (!invoiceId || !paymentAmount || !paymentDate) {
+                showError('Please enter invoice ID, payment amount, and payment date');
+                return;
+            }
+
+            hideError();
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const invoiceResponse = await fetch(`${API_BASE_URL}/api/penalties/invoices/${invoiceId}`);
+                const invoiceResult = await invoiceResponse.json();
+
+                if (!invoiceResult.success) {
+                    throw new Error(invoiceResult.error || 'Failed to fetch invoice');
+                }
+
+                invoiceData = invoiceResult.data;
+
+                const calcResponse = await fetch(`${API_BASE_URL}/api/penalties/calculate-prorated`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invoice_id: invoiceId,
+                        proposed_payment_amount: paymentAmount,
+                        payment_date: paymentDate,
+                    }),
+                });
+
+                const calcResult = await calcResponse.json();
+
+                if (!calcResult.success) {
+                    throw new Error(calcResult.error || 'Failed to calculate penalty');
+                }
+
+                calculationData = calcResult.data;
+                displayResults();
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        function displayResults() {
+            const paymentDate = document.getElementById('paymentDate').value;
+            const todayPenalty = calculationData.today_penalty || 0;
+            const accruedTillYesterday = calculationData.accrued_till_yesterday || 0;
+            const totalAccrued = calculationData.total_accrued_including_today || 0;
+
+            document.getElementById('invoiceInfo').innerHTML = `
+                <div>
+                    <p class="text-sm text-gray-600">Invoice Number</p>
+                    <p class="font-semibold">${invoiceData.invoice_number}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Customer</p>
+                    <p class="font-semibold">${invoiceData.customer_name}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Outstanding Amount</p>
+                    <p class="font-semibold text-blue-600">${formatCurrency(invoiceData.current_outstanding)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Days Overdue</p>
+                    <p class="font-semibold text-red-600">${invoiceData.days_overdue} days</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Accrued Till Yesterday</p>
+                    <p class="font-semibold">${formatCurrency(accruedTillYesterday)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Today's Penalty (${formatDate(calculationData.calculation_date)})</p>
+                    <p class="font-semibold">${formatCurrency(todayPenalty)}</p>
+                    <p class="text-xs text-gray-500 mt-1">Testing date: ${paymentDate}</p>
+                </div>
+                <div class="col-span-2 bg-blue-50 p-3 rounded">
+                    <p class="text-sm text-gray-600">Total Accrued Penalty (Including Today)</p>
+                    <p class="font-bold text-blue-900 text-xl">${formatCurrency(totalAccrued)}</p>
+                </div>
+            `;
+
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const penaltyOnPayment = calculationData.penalty_on_payment || 0;
+            const remainingAccrued = calculationData.remaining_accrued_after_payment || 0;
+
+            document.getElementById('case1Details').innerHTML = `
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Payment Amount:</span>
+                        <span class="font-semibold">${formatCurrency(paymentAmount)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Penalty Invoice Generated:</span>
+                        <span class="font-semibold text-orange-600">${formatCurrency(penaltyOnPayment)}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                        <span class="text-gray-700">Remaining Accrued Penalty:</span>
+                        <span class="font-bold text-red-600">${formatCurrency(remainingAccrued)}</span>
+                    </div>
+                    <div class="text-xs text-gray-600 mt-2 bg-white p-2 rounded">
+                        ℹ️ Penalty invoice of ${formatCurrency(penaltyOnPayment)} will be generated and sent. 
+                        Accrued penalty of ${formatCurrency(remainingAccrued)} will continue to accumulate.
+                    </div>
+                </div>
+            `;
+
+            const totalPaymentCase2 = paymentAmount + totalAccrued;
+
+            document.getElementById('case2Details').innerHTML = `
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Principle Payment:</span>
+                        <span class="font-semibold">${formatCurrency(paymentAmount)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Accrued Penalty Payment:</span>
+                        <span class="font-semibold">${formatCurrency(totalAccrued)}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                        <span class="text-gray-700 font-bold">Total Payment:</span>
+                        <span class="font-bold text-green-700 text-lg">${formatCurrency(totalPaymentCase2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Penalty Invoice (Internal):</span>
+                        <span class="font-semibold text-orange-600">${formatCurrency(penaltyOnPayment)}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                        <span class="text-gray-700">Remaining Accrued:</span>
+                        <span class="font-bold text-green-600">₹0.00 ✓</span>
+                    </div>
+                    <div class="text-xs text-green-700 mt-2 bg-green-50 p-2 rounded border border-green-200">
+                        ✓ Penalty invoice of ${formatCurrency(penaltyOnPayment)} will be generated for internal mapping only.
+                        No accrued penalty remains. Customer pays ${formatCurrency(totalAccrued)} upfront.
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        function selectCase(caseNum) {
+            selectedCaseNum = caseNum;
+            
+            const radios = document.querySelectorAll('input[name="paymentCase"]');
+            radios.forEach((radio, index) => {
+                radio.checked = (index + 1) === caseNum;
+            });
+
+            document.getElementById('case1').classList.toggle('border-blue-500', caseNum === 1);
+            document.getElementById('case1').classList.toggle('bg-blue-50', caseNum === 1);
+            document.getElementById('case2').classList.toggle('border-green-500', caseNum === 2);
+            document.getElementById('case2').classList.toggle('bg-green-50', caseNum === 2);
+        }
+
+        async function proceedWithPayment() {
+            if (!calculationData) {
+                showError('Please load invoice details first');
+                return;
+            }
+
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const totalAccrued = calculationData.total_accrued_including_today || 0;
+            const paymentDate = document.getElementById('paymentDate').value;
+
+            const reconciliationPayload = {
+                reconciliations: [
+                    {
+                        invoice_number: invoiceData.invoice_number,
+                        outstanding_amount_for_recon: paymentAmount,
+                        penal_accrual_clear: selectedCaseNum === 2 ? 'Yes' : 'No',
+                        penal_accrual_recon_amount: selectedCaseNum === 2 ? totalAccrued : 0,
+                        payment_date: paymentDate,
+                    }
+                ]
+            };
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+
+                const response = await fetch(`${API_BASE_URL}/api/penalties/reconcile-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reconciliationPayload),
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Reconciliation failed');
+                }
+
+                const reconcileResult = result.results[0];
+                let message = '';
+                
+                if (selectedCaseNum === 1) {
+                    message = `✓ Payment Reconciled Successfully (Case 1)\n\n` +
+                             `Invoice: ${reconcileResult.invoice_number}\n` +
+                             `Principle Payment: ${formatCurrency(reconcileResult.principle_payment)}\n` +
+                             `Penalty Invoice Generated: ${formatCurrency(reconcileResult.penalty_invoice_generated)}\n` +
+                             `Remaining Accrued: ${formatCurrency(reconcileResult.remaining_accrued)}\n` +
+                             `New Outstanding: ${formatCurrency(reconcileResult.new_outstanding)}`;
+                } else {
+                    message = `✓ Payment Reconciled Successfully (Case 2)\n\n` +
+                             `Invoice: ${reconcileResult.invoice_number}\n` +
+                             `Principle Payment: ${formatCurrency(reconcileResult.principle_payment)}\n` +
+                             `Accrued Penalty Cleared: ${formatCurrency(reconcileResult.accrued_amount_cleared)}\n` +
+                             `Total Payment: ${formatCurrency(reconcileResult.principle_payment + reconcileResult.accrued_amount_cleared)}\n` +
+                             `Penalty Invoice (Internal): ${formatCurrency(reconcileResult.penalty_invoice_generated)}\n` +
+                             `Remaining Accrued: ₹${reconcileResult.remaining_accrued.toFixed(2)} ✓\n` +
+                             `New Outstanding: ${formatCurrency(reconcileResult.new_outstanding)}`;
+                }
+
+                alert(message);
+
+                setTimeout(() => {
+                    loadInvoiceDetails();
+                }, 1000);
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
